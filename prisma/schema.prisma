@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String        @id
+  firstSeen  DateTime      @default(now())
+  lastActive DateTime      @updatedAt
+  problems   UserProblem[]
+}
+
+model Pattern {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  slug      String    @unique
+  icon      String
+  createdAt DateTime  @default(now())
+  problems  Problem[]
+}
+
+model Problem {
+  id         Int           @id @default(autoincrement())
+  srNo       Int
+  title      String
+  url        String
+  difficulty String
+  tags       String        @default("[]")
+  patternId  Int
+  pattern    Pattern       @relation(fields: [patternId], references: [id], onDelete: Cascade)
+  users      UserProblem[]
+  createdAt  DateTime      @default(now())
+}
+
+model UserProblem {
+  id        Int       @id @default(autoincrement())
+  userId    String
+  problemId Int
+  done      Boolean   @default(false)
+  solvedOn  DateTime?
+  notes     String?
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  problem   Problem   @relation(fields: [problemId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, problemId])
+}
+
+model Broadcast {
+  id        Int      @id @default(autoincrement())
+  message   String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model ActivityLog {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  action    String
+  problemId Int?
+  patternId Int?
+  meta      String?
+  createdAt DateTime @default(now())
+}
