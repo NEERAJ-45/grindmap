@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import { toggleProblemDone, updateNotes, updateSolvedDate, deleteProblem } from "@/app/actions";
 import { format } from "date-fns";
@@ -30,12 +30,28 @@ export function ProblemsTable({ problems, userId, patternName, highlightId }: Pr
   const [openNotes, setOpenNotes] = useState<number | null>(null);
   const [openMenu, setOpenMenu] = useState<number | null>(null);
   const [noteText, setNoteText] = useState("");
+  // Optimistic toggle state: stores overridden done values keyed by problem id
+  const [optimisticDone, setOptimisticDone] = useState<Record<number, boolean>>({});
+
+  const getIsDone = useCallback(
+    (problem: Problem) => {
+      if (problem.id in optimisticDone) return optimisticDone[problem.id];
+      const up = userId ? problem.users.find((u) => u.userId === userId) : null;
+      return up?.done ?? false;
+    },
+    [optimisticDone, userId]
+  );
 
   const handleToggle = (problemId: number, currentDone: boolean) => {
     if (!userId) return;
-    startTransition(async () => {
-      await toggleProblemDone(userId, problemId, !currentDone);
-      toast.success(!currentDone ? "Problem solved!" : "Unmarked");
+    const newDone = !currentDone;
+    // Flip instantly
+    setOptimisticDone((prev) => ({ ...prev, [problemId]: newDone }));
+    toast.success(newDone ? "Problem solved!" : "Unmarked");
+    // Fire server action in background, revert on error
+    toggleProblemDone(userId, problemId, newDone).catch(() => {
+      setOptimisticDone((prev) => ({ ...prev, [problemId]: currentDone }));
+      toast.error("Failed to update — reverted");
     });
   };
 
@@ -75,7 +91,7 @@ export function ProblemsTable({ problems, userId, patternName, highlightId }: Pr
             const userProblem = userId
               ? problem.users.find((u) => u.userId === userId)
               : null;
-            const isDone = userProblem?.done ?? false;
+            const isDone = getIsDone(problem);
             const solvedOn = userProblem?.solvedOn;
             const hasNotes = !!userProblem?.notes;
             const isHighlighted = highlightId === problem.id;
@@ -99,7 +115,7 @@ export function ProblemsTable({ problems, userId, patternName, highlightId }: Pr
                     type="checkbox"
                     checked={isDone}
                     onChange={() => handleToggle(problem.id, isDone)}
-                    disabled={!userId || isPending}
+                    disabled={!userId}
                     className="h-4 w-4 rounded border-[#1f1f1f] bg-[#111] accent-[#3b82f6]"
                   />
                 </td>

@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { toggleSDItemDone, updateSDNotes } from "@/app/actions/sd-actions";
 import { type SDItem, type UserSDItem } from "@prisma/client";
-import { Check, FileText, ExternalLink, RefreshCw } from "lucide-react";
+import { Check, FileText, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SDItemsTableProps {
@@ -12,17 +12,27 @@ interface SDItemsTableProps {
 }
 
 export function SDItemsTable({ items, userId }: SDItemsTableProps) {
-  const [loadingItems, setLoadingItems] = useState<Set<string>>(new Set());
+  // Optimistic state: tracks items whose done status has been flipped locally
+  const [optimisticDone, setOptimisticDone] = useState<Record<string, boolean>>({});
   const [editingNotes, setEditingNotes] = useState<string | null>(null);
   const [notesValue, setNotesValue] = useState("");
 
-  const handleToggle = async (itemId: string, currentDone: boolean) => {
-    setLoadingItems((prev) => new Set(prev).add(itemId));
-    await toggleSDItemDone(userId, itemId, !currentDone);
-    setLoadingItems((prev) => {
-      const next = new Set(prev);
-      next.delete(itemId);
-      return next;
+  const isDone = useCallback(
+    (item: SDItem & { users: UserSDItem[] }) => {
+      if (item.id in optimisticDone) return optimisticDone[item.id];
+      return item.users.some((u) => u.userId === userId && u.done);
+    },
+    [optimisticDone, userId]
+  );
+
+  const handleToggle = (itemId: string, currentDone: boolean) => {
+    // Flip instantly in local state
+    const newDone = !currentDone;
+    setOptimisticDone((prev) => ({ ...prev, [itemId]: newDone }));
+
+    // Fire server action in the background — revert on failure
+    toggleSDItemDone(userId, itemId, newDone).catch(() => {
+      setOptimisticDone((prev) => ({ ...prev, [itemId]: currentDone }));
     });
   };
 
@@ -56,8 +66,7 @@ export function SDItemsTable({ items, userId }: SDItemsTableProps) {
         <tbody className="divide-y divide-[#1f1f1f]">
           {items.map((item) => {
             const userState = item.users.find((u) => u.userId === userId);
-            const isDone = userState?.done ?? false;
-            const isLoading = loadingItems.has(item.id);
+            const itemDone = isDone(item);
             const isEditing = editingNotes === item.id;
 
             return (
@@ -65,21 +74,15 @@ export function SDItemsTable({ items, userId }: SDItemsTableProps) {
                 {/* Status Checkbox */}
                 <td className="px-6 py-4">
                   <button
-                    onClick={() => handleToggle(item.id, isDone)}
-                    disabled={isLoading}
+                    onClick={() => handleToggle(item.id, itemDone)}
                     className={cn(
                       "flex h-6 w-6 items-center justify-center rounded-md border transition-all",
-                      isLoading ? "opacity-50 cursor-not-allowed" : "",
-                      isDone
+                      itemDone
                         ? "border-[#3b82f6] bg-[#3b82f6] text-white"
                         : "border-[#333] hover:border-[#444]"
                     )}
                   >
-                    {isLoading ? (
-                      <RefreshCw size={12} className="animate-spin" />
-                    ) : isDone ? (
-                      <Check size={14} strokeWidth={3} />
-                    ) : null}
+                    {itemDone ? <Check size={14} strokeWidth={3} /> : null}
                   </button>
                 </td>
 
