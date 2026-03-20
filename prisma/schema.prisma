@@ -3,19 +3,28 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
+// ── Auth ──────────────────────────────────────
+model AuthUser {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  username       String   @unique
+  hashedPassword String
+  createdAt      DateTime @default(now())
+}
+
+// ── DSA Domain ────────────────────────────────
 model User {
-  id         String        @id
+  id         String        @id @map("_id")
   firstSeen  DateTime      @default(now())
   lastActive DateTime      @updatedAt
   problems   UserProblem[]
 }
 
 model Pattern {
-  id        Int       @id @default(autoincrement())
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
   name      String    @unique
   slug      String    @unique
   icon      String
@@ -24,22 +33,22 @@ model Pattern {
 }
 
 model Problem {
-  id         Int           @id @default(autoincrement())
+  id         String        @id @default(auto()) @map("_id") @db.ObjectId
   srNo       Int
   title      String
   url        String
   difficulty String
   tags       String        @default("[]")
-  patternId  Int
+  patternId  String        @db.ObjectId
   pattern    Pattern       @relation(fields: [patternId], references: [id], onDelete: Cascade)
   users      UserProblem[]
   createdAt  DateTime      @default(now())
 }
 
 model UserProblem {
-  id        Int       @id @default(autoincrement())
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
   userId    String
-  problemId Int
+  problemId String    @db.ObjectId
   done      Boolean   @default(false)
   solvedOn  DateTime?
   notes     String?
@@ -50,18 +59,89 @@ model UserProblem {
 }
 
 model Broadcast {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   message   String
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
 }
 
 model ActivityLog {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   userId    String
   action    String
-  problemId Int?
-  patternId Int?
+  domain    String   @default("dsa")
+  problemId String?  @db.ObjectId
+  patternId String?  @db.ObjectId
   meta      String?
   createdAt DateTime @default(now())
+}
+
+// ── System Design Domain ──────────────────────
+model SDTopic {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  icon        String
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  items       SDItem[]
+}
+
+model SDItem {
+  id         String       @id @default(auto()) @map("_id") @db.ObjectId
+  title      String
+  url        String
+  type       String       // Article | Video | CaseStudy | Interview
+  difficulty String
+  topicId    String       @db.ObjectId
+  topic      SDTopic      @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  users      UserSDItem[]
+  createdAt  DateTime     @default(now())
+}
+
+model UserSDItem {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String
+  sdItemId    String    @db.ObjectId
+  done        Boolean   @default(false)
+  completedOn DateTime?
+  notes       String?
+  sdItem      SDItem    @relation(fields: [sdItemId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, sdItemId])
+}
+
+// ── Tasks Domain ──────────────────────────────
+model Task {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String
+  title       String
+  description String?
+  status      String    @default("todo") // todo | in_progress | done
+  priority    String    @default("medium") // low | medium | high
+  dueDate     DateTime?
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+}
+
+// ── Projects Domain ───────────────────────────
+model Project {
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String
+  title       String
+  description String?
+  status      String        @default("planning") // planning | building | paused | completed
+  progress    Int           @default(0) // 0-100
+  createdAt   DateTime      @default(now())
+  tasks       ProjectTask[]
+}
+
+model ProjectTask {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  projectId String   @db.ObjectId
+  title     String
+  done      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }

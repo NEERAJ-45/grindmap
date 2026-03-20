@@ -7,9 +7,17 @@ export function useFingerprint() {
   const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
+    // Check sessionStorage first to avoid redundant work
+    const cached = sessionStorage.getItem("ob_fingerprint");
+    if (cached) {
+      setUserId(cached);
+      return;
+    }
+
     getFingerprint().then((id) => {
       setUserId(id);
-      // Upsert user on every page load
+      sessionStorage.setItem("ob_fingerprint", id);
+      // Upsert once per session only
       fetch("/api/user/upsert", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

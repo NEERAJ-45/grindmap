@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { Toaster } from "sonner";
+import { AppLayout } from "@/components/shared/AppLayout";
 import "./globals.css";
 
 const geist = Geist({
@@ -21,7 +22,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geist.variable} dark`}>
       <body className="min-h-screen bg-[#0a0a0a] text-[#ededed] font-sans antialiased">
-        {children}
+        <AppLayout>
+          {children}
+        </AppLayout>
         <Toaster
           theme="dark"
           toastOptions={{

@@ -1,7 +1,6 @@
 import { getPatterns } from "@/app/actions";
 import HomeClient from "./HomeClient";
 
-export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const patterns = await getPatterns();

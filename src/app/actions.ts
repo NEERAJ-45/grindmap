@@ -54,7 +54,7 @@ export async function createPattern(data: {
 }
 
 export async function updatePattern(
-  id: number,
+  id: string,
   data: { name?: string; slug?: string; icon?: string }
 ) {
   const pattern = await prisma.pattern.update({ where: { id }, data });
@@ -63,7 +63,7 @@ export async function updatePattern(
   return pattern;
 }
 
-export async function deletePattern(id: number) {
+export async function deletePattern(id: string) {
   await prisma.pattern.delete({ where: { id } });
   revalidatePath("/");
   revalidatePath("/admin/patterns");
@@ -71,7 +71,7 @@ export async function deletePattern(id: number) {
 
 // ── Problems ──────────────────────────────────
 export async function addProblems(
-  patternId: number,
+  patternId: string,
   problems: {
     srNo: number;
     title: string;
@@ -88,9 +88,11 @@ export async function addProblems(
   const newProblems = problems.filter((p) => !existingUrls.has(p.url));
 
   if (newProblems.length > 0) {
-    await prisma.problem.createMany({
-      data: newProblems.map((p) => ({ ...p, patternId })),
-    });
+    await Promise.all(
+      newProblems.map((p) =>
+        prisma.problem.create({ data: { ...p, patternId } })
+      )
+    );
   }
 
   revalidatePath("/");
@@ -98,20 +100,20 @@ export async function addProblems(
   return newProblems.length;
 }
 
-export async function deleteProblem(id: number) {
+export async function deleteProblem(id: string) {
   await prisma.problem.delete({ where: { id } });
   revalidatePath("/");
   revalidatePath("/patterns");
 }
 
-export async function deleteProblems(ids: number[]) {
+export async function deleteProblems(ids: string[]) {
   await prisma.problem.deleteMany({ where: { id: { in: ids } } });
   revalidatePath("/");
   revalidatePath("/patterns");
 }
 
 export async function updateProblem(
-  id: number,
+  id: string,
   data: { title?: string; difficulty?: string; tags?: string; url?: string }
 ) {
   await prisma.problem.update({ where: { id }, data });
@@ -122,7 +124,7 @@ export async function updateProblem(
 // ── UserProblem (toggle solve, notes) ─────────
 export async function toggleProblemDone(
   userId: string,
-  problemId: number,
+  problemId: string,
   done: boolean
 ) {
   await prisma.user.upsert({
@@ -174,7 +176,7 @@ export async function toggleProblemDone(
 
 export async function updateSolvedDate(
   userId: string,
-  problemId: number,
+  problemId: string,
   date: string | null
 ) {
   await prisma.userProblem.upsert({
@@ -196,7 +198,7 @@ export async function updateSolvedDate(
 
 export async function updateNotes(
   userId: string,
-  problemId: number,
+  problemId: string,
   notes: string
 ) {
   await prisma.userProblem.upsert({
@@ -211,12 +213,12 @@ export async function searchProblems(query: string) {
   if (!query || query.length < 2) return { patterns: [], problems: [] };
 
   const patterns = await prisma.pattern.findMany({
-    where: { name: { contains: query } },
+    where: { name: { contains: query, mode: "insensitive" } },
     take: 5,
   });
 
   const problems = await prisma.problem.findMany({
-    where: { title: { contains: query } },
+    where: { title: { contains: query, mode: "insensitive" } },
     include: { pattern: { select: { name: true, slug: true } } },
     take: 10,
   });
@@ -290,13 +292,59 @@ export async function getUserStats(userId: string) {
   ).length;
 
   // Daily solves last 30 days
-  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
   const dailySolves: { date: string; count: number }[] = [];
   for (let i = 29; i >= 0; i--) {
     const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
     const key = d.toISOString().split("T")[0];
     dailySolves.push({ date: key, count: solveCounts[key] || 0 });
   }
+
+  // New domain stats
+  const sdCompleted = await prisma.userSDItem.count({
+    where: { userId, done: true },
+  });
+  const tasksCompleted = await prisma.task.count({
+    where: { userId, status: "done" },
+  });
+  const projectsCompleted = await prisma.project.count({
+    where: { userId, status: "completed" },
+  });
+
+  // Combined daily activity (all domains) — last 30 days
+  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const recentActivity = await prisma.activityLog.findMany({
+    where: { userId, createdAt: { gte: thirtyDaysAgo } },
+    select: { createdAt: true, domain: true },
+  });
+
+  const domainDaily: Record<string, Record<string, number>> = {};
+  for (const log of recentActivity) {
+    const dateKey = log.createdAt.toISOString().split("T")[0];
+    if (!domainDaily[dateKey]) domainDaily[dateKey] = {};
+    domainDaily[dateKey][log.domain] = (domainDaily[dateKey][log.domain] || 0) + 1;
+  }
+
+  const combinedDaily: { date: string; dsa: number; system_design: number; task: number; project: number }[] = [];
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+    const key = d.toISOString().split("T")[0];
+    const dayData = domainDaily[key] || {};
+    combinedDaily.push({
+      date: key,
+      dsa: dayData["dsa"] || 0,
+      system_design: dayData["system_design"] || 0,
+      task: dayData["task"] || 0,
+      project: dayData["project"] || 0,
+    });
+  }
+
+  // Domain distribution
+  const domainDist = [
+    { name: "DSA", value: solved },
+    { name: "System Design", value: sdCompleted },
+    { name: "Tasks", value: tasksCompleted },
+    { name: "Projects", value: projectsCompleted },
+  ];
 
   return {
     totalProblems,
@@ -311,6 +359,11 @@ export async function getUserStats(userId: string) {
     thisWeek,
     today,
     dailySolves,
+    sdCompleted,
+    tasksCompleted,
+    projectsCompleted,
+    combinedDaily,
+    domainDist,
   };
 }
 
@@ -346,7 +399,6 @@ export async function getAdminActivity(limit = 50) {
     take: limit,
   });
 
-  // Enrich with names
   const enriched = await Promise.all(
     logs.map(async (log) => {
       let problemTitle: string | null = null;
@@ -385,13 +437,8 @@ export async function getAdminAnalytics() {
 
   // DAU last 14 days
   const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
-  const recentUsers = await prisma.user.findMany({
-    where: { lastActive: { gte: fourteenDaysAgo } },
-    select: { lastActive: true },
-  });
 
   const dauMap: Record<string, Set<string>> = {};
-  // Use activity logs for more accurate DAU
   const recentLogs = await prisma.activityLog.findMany({
     where: { createdAt: { gte: fourteenDaysAgo } },
     select: { userId: true, createdAt: true },
@@ -507,7 +554,6 @@ export async function getAdminAnalytics() {
   const completedPattern = patterns.filter((p) => {
     const totalProbs = p.problems.length;
     if (totalProbs === 0) return false;
-    // Check if any user solved all problems in this pattern
     const userSolveSets: Record<string, number> = {};
     for (const prob of p.problems) {
       for (const up of prob.users) {
@@ -515,7 +561,7 @@ export async function getAdminAnalytics() {
       }
     }
     return Object.values(userSolveSets).some((c) => c >= totalProbs);
-  }).length > 0 ? 1 : 0; // Simplified
+  }).length > 0 ? 1 : 0;
 
   // Daily solves last 30 days
   const recentSolves = await prisma.userProblem.findMany({
@@ -610,7 +656,6 @@ export async function getAdminUsers(filters?: {
       .filter((up) => up.solvedOn)
       .map((up) => up.solvedOn!);
 
-    // Calculate streak inline
     const uniqueDays = Array.from(
       new Set(
         solvedDates.map((d) => d.toISOString().split("T")[0])
@@ -665,14 +710,14 @@ export async function getAdminUsers(filters?: {
 
 // ── Admin Problems ────────────────────────────
 export async function getAdminProblems(filters?: {
-  patternId?: number;
+  patternId?: string;
   difficulty?: string;
   search?: string;
 }) {
   const where: Record<string, unknown> = {};
   if (filters?.patternId) where.patternId = filters.patternId;
   if (filters?.difficulty) where.difficulty = filters.difficulty;
-  if (filters?.search) where.title = { contains: filters.search };
+  if (filters?.search) where.title = { contains: filters.search, mode: "insensitive" };
 
   const problems = await prisma.problem.findMany({
     where,
@@ -707,7 +752,6 @@ export async function getBroadcasts() {
 }
 
 export async function createBroadcast(message: string) {
-  // Deactivate all existing
   await prisma.broadcast.updateMany({
     where: { active: true },
     data: { active: false },
@@ -719,12 +763,11 @@ export async function createBroadcast(message: string) {
   return broadcast;
 }
 
-export async function toggleBroadcast(id: number) {
+export async function toggleBroadcast(id: string) {
   const existing = await prisma.broadcast.findUnique({ where: { id } });
   if (!existing) return;
 
   if (!existing.active) {
-    // Deactivate all others first
     await prisma.broadcast.updateMany({
       where: { active: true },
       data: { active: false },
@@ -738,7 +781,7 @@ export async function toggleBroadcast(id: number) {
   revalidatePath("/");
 }
 
-export async function deleteBroadcast(id: number) {
+export async function deleteBroadcast(id: string) {
   await prisma.broadcast.delete({ where: { id } });
   revalidatePath("/");
 }

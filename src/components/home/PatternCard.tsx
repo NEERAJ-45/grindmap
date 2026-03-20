@@ -1,11 +1,49 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import * as LucideIcons from "lucide-react";
+import {
+  Layers,
+  Hash,
+  GitBranch,
+  Binary,
+  Braces,
+  Code2,
+  Database,
+  FileSearch,
+  Gauge,
+  Grid2x2,
+  ListTree,
+  Network,
+  Parentheses,
+  Repeat,
+  Search,
+  SortAsc,
+  Target,
+  type LucideIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 
-type LucideIconName = keyof typeof LucideIcons;
+// Only the icons actually used in pattern data — avoids importing the entire barrel
+const ICON_MAP: Record<string, LucideIcon> = {
+  Layers,
+  Hash,
+  GitBranch,
+  Binary,
+  Braces,
+  Code2,
+  Database,
+  FileSearch,
+  Gauge,
+  Grid2x2,
+  ListTree,
+  Network,
+  Parentheses,
+  Repeat,
+  Search,
+  SortAsc,
+  Target,
+};
 
 interface PatternCardProps {
   pattern: {
@@ -45,7 +83,7 @@ export function PatternCard({ pattern, userId }: PatternCardProps) {
 
   const lastSolved = userSolves[0];
 
-  const IconComponent = (LucideIcons[pattern.icon as LucideIconName] as LucideIcons.LucideIcon) || LucideIcons.Layers;
+  const IconComponent = ICON_MAP[pattern.icon] || Layers;
 
   return (
     <Link href={`/patterns/${pattern.slug}`}>
