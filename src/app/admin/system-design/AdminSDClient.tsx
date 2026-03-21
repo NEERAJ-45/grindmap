@@ -10,8 +10,10 @@ import {
   updateSDItem,
   deleteSDItem
 } from "@/app/actions/sd-actions";
-import { Plus, Trash2, Edit2, ChevronDown, CheckCircle2, ChevronRight, Save, X } from "lucide-react";
+import { Plus, Trash2, Edit2, ChevronDown, CheckCircle2, ChevronRight, Save, X, HelpCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { IconPicker } from "@/components/ui/IconPicker";
+import * as LucideIcons from "lucide-react";
 
 type TopicWithItems = SDTopic & { items: (SDItem & { users: UserSDItem[] })[] };
 
@@ -24,10 +26,11 @@ export function AdminSDClient({ initialTopics }: { initialTopics: TopicWithItems
   const [newTopicName, setNewTopicName] = useState("");
   const [newTopicSlug, setNewTopicSlug] = useState("");
   const [newTopicDesc, setNewTopicDesc] = useState("");
+  const [newTopicIcon, setNewTopicIcon] = useState("Layers");
 
   // Editing State
   const [editingTopicId, setEditingTopicId] = useState<string | null>(null);
-  const [editTopicForm, setEditTopicForm] = useState({ name: "", slug: "", description: "" });
+  const [editTopicForm, setEditTopicForm] = useState({ name: "", slug: "", description: "", icon: "Layers" });
 
   const [loading, setLoading] = useState(false);
 
@@ -45,7 +48,7 @@ export function AdminSDClient({ initialTopics }: { initialTopics: TopicWithItems
       name: newTopicName,
       slug: newTopicSlug,
       description: newTopicDesc,
-      icon: "📚",
+      icon: newTopicIcon,
       order: topics.length,
     });
     setTopics([...topics, { ...created, items: [] }]);
@@ -130,10 +133,13 @@ export function AdminSDClient({ initialTopics }: { initialTopics: TopicWithItems
             />
             <input
               className="rounded bg-[#111] px-3 py-2 border border-[#333] outline-none focus:border-[#3b82f6]"
-              placeholder="Description"
               value={newTopicDesc}
               onChange={e => setNewTopicDesc(e.target.value)}
             />
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs text-[#6b7280] ml-1">Icon</label>
+              <IconPicker value={newTopicIcon} onChange={setNewTopicIcon} className="w-full" />
+            </div>
           </div>
           <div className="mt-4 flex justify-end gap-2">
             <button onClick={() => setIsAddingTopic(false)} className="px-3 py-1.5 text-[#8b92a0]">Cancel</button>
@@ -159,6 +165,9 @@ export function AdminSDClient({ initialTopics }: { initialTopics: TopicWithItems
                     value={editTopicForm.slug}
                     onChange={e => setEditTopicForm({...editTopicForm, slug: e.target.value})}
                   />
+                  <div className="w-48">
+                    <IconPicker value={editTopicForm.icon} onChange={icon => setEditTopicForm({...editTopicForm, icon})} className="w-full" />
+                  </div>
                   <button onClick={() => handleUpdateTopic(topic.id)} className="p-1.5 bg-[#22c55e] text-[#111] rounded">
                     <Save size={16} />
                   </button>
@@ -172,6 +181,10 @@ export function AdminSDClient({ initialTopics }: { initialTopics: TopicWithItems
                   onClick={() => setExpandedTopic(expandedTopic === topic.id ? null : topic.id)}
                 >
                   {expandedTopic === topic.id ? <ChevronDown size={18} className="text-[#6b7280]"/> : <ChevronRight size={18} className="text-[#6b7280]"/>}
+                  {(() => {
+                    const Icon = (LucideIcons as any)[topic.icon] || HelpCircle;
+                    return <Icon size={18} strokeWidth={1.5} className="text-[#3b82f6]" />;
+                  })()}
                   <span className="font-medium text-[15px]">{topic.name}</span>
                   <span className="text-xs text-[#6b7280]">/{topic.slug}</span>
                   <span className="ml-2 rounded-full bg-[#1a1a1a] px-2 py-0.5 text-xs text-[#8b92a0] border border-[#222]">
@@ -184,7 +197,7 @@ export function AdminSDClient({ initialTopics }: { initialTopics: TopicWithItems
                 <div className="flex items-center gap-2">
                   <button 
                     onClick={() => {
-                      setEditTopicForm({ name: topic.name, slug: topic.slug, description: topic.description || "" });
+                      setEditTopicForm({ name: topic.name, slug: topic.slug, description: topic.description || "", icon: topic.icon });
                       setEditingTopicId(topic.id);
                     }} 
                     className="p-1.5 text-[#6b7280] hover:text-[#ededed]"

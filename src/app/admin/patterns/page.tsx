@@ -2,10 +2,12 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { getPatterns, createPattern, deletePattern } from "@/app/actions";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2, HelpCircle } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { IconPicker } from "@/components/ui/IconPicker";
+import * as LucideIcons from "lucide-react";
 
 export default function AdminPatternsPage() {
   const [patterns, setPatterns] = useState<Awaited<ReturnType<typeof getPatterns>>>([]);
@@ -29,7 +31,7 @@ export default function AdminPatternsPage() {
     });
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: string) => {
     if (!confirm("Delete this pattern and all its problems?")) return;
     startTransition(async () => {
       await deletePattern(id);
@@ -61,7 +63,12 @@ export default function AdminPatternsPage() {
         <tbody>
           {patterns.map((p) => (
             <tr key={p.id} className="border-b border-[#1f1f1f] hover:bg-[#141414]">
-              <td className="px-3 py-2.5 text-sm text-[#6b7280]">{p.icon}</td>
+              <td className="px-3 py-2.5 text-sm text-[#6b7280]">
+                {(() => {
+                  const Icon = (LucideIcons as any)[p.icon] || HelpCircle;
+                  return <Icon size={16} strokeWidth={1.5} />;
+                })()}
+              </td>
               <td className="px-3 py-2.5 text-sm">{p.name}</td>
               <td className="px-3 py-2.5 text-sm text-[#6b7280]">{p.slug}</td>
               <td className="px-3 py-2.5 text-sm">{p.problems.length}</td>
@@ -87,7 +94,7 @@ export default function AdminPatternsPage() {
             <h2 className="text-lg font-medium mb-4">New Pattern</h2>
             <div className="space-y-3">
               <input value={newPattern.name} onChange={(e) => setNewPattern({ ...newPattern, name: e.target.value, slug: e.target.value.toLowerCase().replace(/\s+/g, "-") })} placeholder="Name" className="w-full rounded-md border border-[#1f1f1f] bg-[#111] px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#3b82f6]" />
-              <input value={newPattern.icon} onChange={(e) => setNewPattern({ ...newPattern, icon: e.target.value })} placeholder="Lucide icon name (e.g. Layers)" className="w-full rounded-md border border-[#1f1f1f] bg-[#111] px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#3b82f6]" />
+              <IconPicker value={newPattern.icon} onChange={(icon) => setNewPattern({ ...newPattern, icon })} className="w-full" />
               <input value={newPattern.slug} onChange={(e) => setNewPattern({ ...newPattern, slug: e.target.value })} placeholder="Slug (auto-generated)" className="w-full rounded-md border border-[#1f1f1f] bg-[#111] px-3 py-2 text-sm text-[#6b7280] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]" />
               <button onClick={handleCreate} disabled={!newPattern.name || isPending} className="w-full rounded-md bg-white px-4 py-2 text-sm text-black hover:bg-[#e5e5e5] disabled:opacity-50">
                 Create Pattern

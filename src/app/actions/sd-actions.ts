@@ -91,6 +91,8 @@ export async function createSDTopic(data: {
   name: string;
   slug: string;
   icon: string;
+  description?: string;
+  order?: number;
 }) {
   const topic = await prisma.sDTopic.create({ data });
   revalidatePath("/system-design");
@@ -100,7 +102,7 @@ export async function createSDTopic(data: {
 
 export async function updateSDTopic(
   id: string,
-  data: { name?: string; slug?: string; icon?: string }
+  data: { name?: string; slug?: string; icon?: string; description?: string; order?: number }
 ) {
   const topic = await prisma.sDTopic.update({ where: { id }, data });
   revalidatePath("/system-design");
