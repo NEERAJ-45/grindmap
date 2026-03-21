@@ -22,7 +22,7 @@ export function middleware(request: NextRequest) {
 
   // Admin-specific protection
   if (pathname.startsWith("/admin") && pathname !== "/admin/login") {
-    const adminCookie = request.cookies.get("grindmap_admin");
+    const adminCookie = request.cookies.get("Operation Breakout_admin");
     if (!adminCookie || adminCookie.value !== "1") {
       const loginUrl = new URL("/admin/login", request.url);
       return NextResponse.redirect(loginUrl);

@@ -1,7 +1,7 @@
 export async function getFingerprint(): Promise<string> {
   if (typeof window === "undefined") return "";
 
-  const stored = localStorage.getItem("grindmap_uid");
+  const stored = localStorage.getItem("Operation Breakout_uid");
   if (stored) return stored;
 
   try {
@@ -9,11 +9,11 @@ export async function getFingerprint(): Promise<string> {
     const fp = await FingerprintJS.load();
     const result = await fp.get();
     const visitorId = result.visitorId;
-    localStorage.setItem("grindmap_uid", visitorId);
+    localStorage.setItem("Operation Breakout_uid", visitorId);
     return visitorId;
   } catch {
     const fallbackId = crypto.randomUUID();
-    localStorage.setItem("grindmap_uid", fallbackId);
+    localStorage.setItem("Operation Breakout_uid", fallbackId);
     return fallbackId;
   }
 }

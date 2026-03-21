@@ -42,7 +42,7 @@ export default function AdminLoginPage() {
         transition={{ duration: shake ? 0.3 : 0.2 }}
         className="relative z-10 w-80 rounded-lg border border-[#1f1f1f] bg-[#111] p-6"
       >
-        <h1 className="text-lg font-medium">GrindMap</h1>
+        <h1 className="text-lg font-medium">Operation Breakout</h1>
         <p className="mt-1 text-xs text-[#6b7280]">Admin Access</p>
 
         <form onSubmit={handleSubmit} className="mt-6">

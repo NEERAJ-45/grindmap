@@ -2,7 +2,6 @@
 
 import { useState, useTransition, useCallback } from "react";
 import { cn } from "@/lib/utils";
-import { toggleProblemDone, updateNotes, updateSolvedDate, deleteProblem } from "@/app/actions";
 import { format } from "date-fns";
 import { ExternalLink, NotepadText, MoreHorizontal, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -48,8 +47,12 @@ export function ProblemsTable({ problems, userId, patternName, highlightId }: Pr
     // Flip instantly
     setOptimisticDone((prev) => ({ ...prev, [problemId]: newDone }));
     toast.success(newDone ? "Problem solved!" : "Unmarked");
-    // Fire server action in background, revert on error
-    toggleProblemDone(userId, problemId, newDone).catch(() => {
+    // Fire API call in background, revert on error
+    fetch("/api/problems/toggle", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, problemId, done: newDone }),
+    }).then(res => { if (!res.ok) throw new Error(); }).catch(() => {
       setOptimisticDone((prev) => ({ ...prev, [problemId]: currentDone }));
       toast.error("Failed to update — reverted");
     });
@@ -57,7 +60,11 @@ export function ProblemsTable({ problems, userId, patternName, highlightId }: Pr
 
   const handleDeleteProblem = (id: number) => {
     startTransition(async () => {
-      await deleteProblem(id);
+      await fetch("/api/problems/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
       toast.success("Problem deleted");
     });
     setOpenMenu(null);
@@ -66,7 +73,11 @@ export function ProblemsTable({ problems, userId, patternName, highlightId }: Pr
   const handleSaveNotes = (problemId: number) => {
     if (!userId) return;
     startTransition(async () => {
-      await updateNotes(userId, problemId, noteText);
+      await fetch("/api/problems/notes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, problemId, notes: noteText }),
+      });
     });
     setOpenNotes(null);
   };

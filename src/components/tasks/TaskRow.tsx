@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { type Task } from "@prisma/client";
-import { updateTaskStatus, deleteTask } from "@/app/actions/task-actions";
 import { Check, Clock, AlertCircle, Trash2, Calendar, ChevronDown, ListTodo } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -21,7 +20,11 @@ export function TaskRow({ task, userId, onUpdate }: TaskRowProps) {
   const toggleStatus = async () => {
     setLoading(true);
     const newStatus = isDone ? "todo" : "done";
-    await updateTaskStatus(userId, task.id, newStatus);
+    await fetch(`/api/tasks/${task.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, status: newStatus }),
+    });
     setLoading(false);
     onUpdate();
   };
@@ -29,7 +32,7 @@ export function TaskRow({ task, userId, onUpdate }: TaskRowProps) {
   const handleDelete = async () => {
     if (!confirm("Delete this task?")) return;
     setLoading(true);
-    await deleteTask(task.id);
+    await fetch(`/api/tasks/${task.id}`, { method: "DELETE" });
     onUpdate();
   };
 

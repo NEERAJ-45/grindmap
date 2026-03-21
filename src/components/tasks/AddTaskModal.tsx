@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { type Task } from "@prisma/client";
-import { createTask } from "@/app/actions/task-actions";
 import { X, Calendar } from "lucide-react";
 
 interface AddTaskModalProps {
@@ -23,11 +22,16 @@ export function AddTaskModal({ userId, onClose, onSuccess }: AddTaskModalProps) 
     if (!title.trim()) return;
 
     setLoading(true);
-    await createTask(userId, {
-      title,
-      description,
-      priority,
-      dueDate: dueDate || undefined,
+    await fetch("/api/tasks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId,
+        title,
+        description,
+        priority,
+        dueDate: dueDate || undefined,
+      }),
     });
     setLoading(false);
     onSuccess();

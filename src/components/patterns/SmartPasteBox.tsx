@@ -4,7 +4,6 @@ import { useState, useTransition } from "react";
 import { Plus, ChevronUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { parsePaste } from "@/lib/parsePaste";
-import { addProblems } from "@/app/actions";
 import { toast } from "sonner";
 
 interface SmartPasteBoxProps {
@@ -58,17 +57,22 @@ export function SmartPasteBox({ patternId, patternName, existingUrls }: SmartPas
     }
 
     startTransition(async () => {
-      const count = await addProblems(
-        patternId,
-        newProblems.map((p) => ({
-          srNo: p.srNo,
-          title: p.title,
-          url: p.url,
-          difficulty: p.difficulty,
-          tags: p.tags,
-        }))
-      );
-      toast.success(`${count} problems added to ${patternName}`);
+      const res = await fetch("/api/problems/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          patternId,
+          problems: newProblems.map((p) => ({
+            srNo: p.srNo,
+            title: p.title,
+            url: p.url,
+            difficulty: p.difficulty,
+            tags: p.tags,
+          })),
+        }),
+      });
+      const data = await res.json();
+      toast.success(`${data.count} problems added to ${patternName}`);
       setRawText("");
       setParsed([]);
       setExpanded(false);

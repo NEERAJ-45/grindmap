@@ -1,6 +1,5 @@
-import { getPatternBySlug } from "@/app/actions";
-import { notFound } from "next/navigation";
 import PatternPageClient from "./PatternPageClient";
+import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
@@ -10,15 +9,31 @@ export default async function PatternPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const pattern = await getPatternBySlug(slug);
+  const cookieStore = await cookies();
+  const cookieHeader = cookieStore
+    .getAll()
+    .map((c) => `${c.name}=${c.value}`)
+    .join("; ");
 
-  if (!pattern) notFound();
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/api/patterns/${slug}`,
+    { 
+      cache: "no-store",
+      headers: { Cookie: cookieHeader }
+    }
+  );
+
+  if (!res.ok) {
+    const { notFound } = await import("next/navigation");
+    notFound();
+  }
+  const pattern = await res.json();
 
   const serialized = {
     ...pattern,
-    problems: pattern.problems.map((p) => ({
+    problems: pattern.problems.map((p: any) => ({
       ...p,
-      users: p.users.map((u) => ({
+      users: p.users.map((u: any) => ({
         userId: u.userId,
         done: u.done,
         solvedOn: u.solvedOn,

@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search } from "lucide-react";
 import { useKeyboardShortcut } from "@/hooks/useKeyboardShortcut";
-import { searchProblems } from "@/app/actions";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { BackgroundGradient } from "@/components/ui/background-gradient";
@@ -41,8 +40,9 @@ export function GlobalSearch() {
     }
 
     const timeout = setTimeout(async () => {
-      const res = await searchProblems(query);
-      setResults(res as typeof results);
+      const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+      const data = await res.json();
+      setResults(data as typeof results);
     }, 200);
 
     return () => clearTimeout(timeout);

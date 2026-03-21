@@ -13,6 +13,7 @@ import {
   ChevronRight,
   LogOut,
   Zap,
+  ShieldCheck,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -22,6 +23,7 @@ const navItems = [
   { icon: CheckSquare, label: "Tasks", href: "/tasks" },
   { icon: FolderKanban, label: "Projects", href: "/projects" },
   { icon: BarChart3, label: "Stats", href: "/stats" },
+  { icon: ShieldCheck, label: "Admin", href: "/admin" },
 ];
 
 export function Sidebar() {

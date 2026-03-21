@@ -10,7 +10,7 @@ const geist = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "GrindMap — DSA Pattern Tracker",
+  title: "Operation Breakout —  Hunt Begins Now",
   description: "Track your DSA prep. Pattern by pattern.",
 };
 
@@ -20,7 +20,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geist.variable} dark`}>
+    <html lang="en" className={`${geist.variable} dark`} suppressHydrationWarning>
       <body className="min-h-screen bg-[#0a0a0a] text-[#ededed] font-sans antialiased">
         <AppLayout>
           {children}

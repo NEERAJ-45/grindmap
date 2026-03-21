@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 
 export async function POST(request: Request) {
   const cookieStore = await cookies();
-  if (!cookieStore.get("grindmap_admin")) {
+  if (!cookieStore.get("Operation Breakout_admin")) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

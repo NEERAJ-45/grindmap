@@ -12,6 +12,7 @@ model AuthUser {
   id             String   @id @default(auto()) @map("_id") @db.ObjectId
   username       String   @unique
   hashedPassword String
+  securityAnswer String?  // hashed answer for forgot-password
   createdAt      DateTime @default(now())
 }
 
@@ -94,6 +95,7 @@ model SDItem {
   url        String
   type       String       // Article | Video | CaseStudy | Interview
   difficulty String
+  order      Int          @default(0)
   topicId    String       @db.ObjectId
   topic      SDTopic      @relation(fields: [topicId], references: [id], onDelete: Cascade)
   users      UserSDItem[]

@@ -2,7 +2,6 @@
 
 import { useFingerprint } from "@/hooks/useFingerprint";
 import { useEffect, useState } from "react";
-import { getTasks } from "@/app/actions/task-actions";
 import { type Task } from "@prisma/client";
 import { TaskList } from "@/components/tasks/TaskList";
 import { AddTaskModal } from "@/components/tasks/AddTaskModal";
@@ -17,7 +16,8 @@ export function TasksClient() {
 
   const fetchTasks = async (uid: string) => {
     try {
-      const data = await getTasks(uid);
+      const res = await fetch(`/api/tasks?userId=${uid}`);
+      const data = await res.json();
       setTasks(data);
     } finally {
       setLoading(false);

@@ -7,7 +7,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const cookieStore = await cookies();
-  if (!cookieStore.get("grindmap_admin")) {
+  if (!cookieStore.get("Operation Breakout_admin")) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -31,7 +31,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const cookieStore = await cookies();
-  if (!cookieStore.get("grindmap_admin")) {
+  if (!cookieStore.get("Operation Breakout_admin")) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useFingerprint } from "@/hooks/useFingerprint";
-import { getUserStats } from "@/app/actions";
 import { calculateStreak } from "@/lib/streak";
 import { ContributionHeatmap } from "@/components/stats/ContributionHeatmap";
 import { WavyBackground } from "@/components/ui/wavy-background";
@@ -32,11 +31,13 @@ const tooltipStyle = {
 
 export default function StatsPageClient() {
   const userId = useFingerprint();
-  const [stats, setStats] = useState<Awaited<ReturnType<typeof getUserStats>> | null>(null);
+  const [stats, setStats] = useState<any>(null);
 
   useEffect(() => {
     if (!userId) return;
-    getUserStats(userId).then(setStats);
+    fetch(`/api/stats?userId=${userId}`)
+      .then(res => res.json())
+      .then(setStats);
   }, [userId]);
 
   if (!userId || !stats) {
@@ -48,7 +49,7 @@ export default function StatsPageClient() {
   }
 
   const { currentStreak, bestStreak } = calculateStreak(
-    stats.solvedDates.map((d) => new Date(d))
+    stats.solvedDates.map((d: string) => new Date(d))
   );
 
   const diffData = [
@@ -190,12 +191,12 @@ export default function StatsPageClient() {
             </thead>
             <tbody>
               {stats.patternProgress
-                .sort((a, b) => {
+                .sort((a: any, b: any) => {
                   const aP = a.total > 0 ? a.solved / a.total : 0;
                   const bP = b.total > 0 ? b.solved / b.total : 0;
                   return bP - aP;
                 })
-                .map((p) => {
+                .map((p: any) => {
                   const pct = p.total > 0 ? Math.round((p.solved / p.total) * 100) : 0;
                   return (
                     <tr key={p.slug} className="border-b border-[#1f1f1f] hover:bg-[#141414]">

@@ -50,7 +50,7 @@ async function main() {
   await Promise.all(slidingWindowProblems.map((data) => prisma.problem.create({ data })));
 
   await prisma.broadcast.create({
-    data: { message: "Welcome to GrindMap! Start tracking your DSA progress today.", active: true },
+    data: { message: "Welcome to Operation Breakout! Start tracking your DSA progress today.", active: true },
   });
 
   console.log("✅ Seed completed: 3 patterns, 15 problems, 1 broadcast");

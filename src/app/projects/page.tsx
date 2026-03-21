@@ -2,7 +2,6 @@
 
 import { useFingerprint } from "@/hooks/useFingerprint";
 import { useEffect, useState } from "react";
-import { getProjects, createProject } from "@/app/actions/project-actions";
 import { type Project, type ProjectTask } from "@prisma/client";
 import { ProjectCard } from "@/components/projects/ProjectCard";
 import { FolderKanban, Plus, X } from "lucide-react";
@@ -21,7 +20,8 @@ export default function ProjectsPage() {
 
   const fetchProjects = async (uid: string) => {
     try {
-      const data = await getProjects(uid);
+      const res = await fetch(`/api/projects?userId=${uid}`);
+      const data = await res.json();
       setProjects(data);
     } finally {
       setLoading(false);
@@ -39,7 +39,11 @@ export default function ProjectsPage() {
     if (!newTitle.trim() || !userId) return;
 
     setCreating(true);
-    await createProject(userId, { title: newTitle, description: newDesc });
+    await fetch("/api/projects", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, title: newTitle, description: newDesc }),
+    });
     await fetchProjects(userId);
     setCreating(false);
     setIsModalOpen(false);

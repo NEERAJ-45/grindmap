@@ -3,13 +3,6 @@
 import { useFingerprint } from "@/hooks/useFingerprint";
 import { useState } from "react";
 import { type Project, type ProjectTask } from "@prisma/client";
-import { 
-  updateProject, 
-  deleteProject, 
-  addProjectTask, 
-  toggleProjectTask, 
-  deleteProjectTask 
-} from "@/app/actions/project-actions";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { 
@@ -40,7 +33,11 @@ export function ProjectDetail({ initialProject }: { initialProject: ProjectWithT
   const handleStatusChange = async (status: string) => {
     if (!userId) return;
     setLoading(true);
-    await updateProject(userId, project.id, { status });
+    await fetch(`/api/projects/${project.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, status }),
+    });
     setProject({ ...project, status });
     setLoading(false);
   };
@@ -49,7 +46,11 @@ export function ProjectDetail({ initialProject }: { initialProject: ProjectWithT
     e.preventDefault();
     if (!newTaskTitle.trim()) return;
     setLoading(true);
-    await addProjectTask(project.id, newTaskTitle);
+    await fetch(`/api/projects/${project.id}/tasks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: newTaskTitle }),
+    });
     
     // Optimistic update
     const newTask = {
@@ -66,13 +67,17 @@ export function ProjectDetail({ initialProject }: { initialProject: ProjectWithT
     });
     setNewTaskTitle("");
     setLoading(false);
-    router.refresh(); // Fetch real data in background
+    router.refresh();
   };
 
   const handleTaskToggle = async (taskId: string, done: boolean) => {
     if (!userId) return;
     setLoading(true);
-    await toggleProjectTask(userId, project.id, taskId, done);
+    await fetch(`/api/projects/${project.id}/tasks/toggle`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, taskId, done }),
+    });
     
     // Optimistic
     setProject({
@@ -86,7 +91,11 @@ export function ProjectDetail({ initialProject }: { initialProject: ProjectWithT
   const handleTaskDelete = async (taskId: string) => {
     if (!confirm("Delete this task?")) return;
     setLoading(true);
-    await deleteProjectTask(project.id, taskId);
+    await fetch(`/api/projects/${project.id}/tasks`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ taskId }),
+    });
     setProject({
       ...project,
       tasks: project.tasks.filter((t) => t.id !== taskId),
@@ -98,7 +107,7 @@ export function ProjectDetail({ initialProject }: { initialProject: ProjectWithT
   const handleDeleteProject = async () => {
     if (!confirm("Are you sure you want to delete this entire project? This cannot be undone.")) return;
     setLoading(true);
-    await deleteProject(project.id);
+    await fetch(`/api/projects/${project.id}`, { method: "DELETE" });
     router.push("/projects");
   };
 

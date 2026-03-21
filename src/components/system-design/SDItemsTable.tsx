@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { toggleSDItemDone, updateSDNotes } from "@/app/actions/sd-actions";
 import { type SDItem, type UserSDItem } from "@prisma/client";
 import { Check, FileText, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -30,15 +29,23 @@ export function SDItemsTable({ items, userId }: SDItemsTableProps) {
     const newDone = !currentDone;
     setOptimisticDone((prev) => ({ ...prev, [itemId]: newDone }));
 
-    // Fire server action in the background — revert on failure
-    toggleSDItemDone(userId, itemId, newDone).catch(() => {
+    // Fire API call in the background — revert on failure
+    fetch("/api/sd/items/toggle", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, sdItemId: itemId, done: newDone }),
+    }).then(res => { if (!res.ok) throw new Error(); }).catch(() => {
       setOptimisticDone((prev) => ({ ...prev, [itemId]: currentDone }));
     });
   };
 
   const saveNotes = async (itemId: string) => {
     if (editingNotes !== itemId) return;
-    await updateSDNotes(userId, itemId, notesValue);
+    await fetch("/api/sd/items/notes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, sdItemId: itemId, notes: notesValue }),
+    });
     setEditingNotes(null);
   };
 

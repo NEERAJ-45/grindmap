@@ -2,245 +2,193 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-interface SeedItem {
-  title: string;
-  url: string;
-  type: string;
-  difficulty: string;
-}
-
-interface SeedTopic {
-  name: string;
-  slug: string;
-  description: string;
-  icon: string;
-  order: number;
-  items: SeedItem[];
-}
-
-const topics: SeedTopic[] = [
-  // ════════════════════════════════════════════
-  // 1️⃣ DATABASES
-  // ════════════════════════════════════════════
+const topics = [
   {
     name: "Databases",
     slug: "databases",
-    description: "Relational, NoSQL, Replication, Sharding, ACID, Indexing",
+    description: "Relational DBs, Indexing, WAL, ACID, MVCC, Sharding, NoSQL",
     icon: "Database",
     order: 1,
     items: [
-      // Relational Databases
-      { title: "Relational Databases — Fundamentals", url: "https://www.youtube.com/watch?v=OqjJjpjDRLc", type: "Video", difficulty: "Easy" },
-      // B+ Tree Indexing
-      { title: "B+ Tree Indexing — Node Structure (Internal vs Leaf)", url: "https://www.youtube.com/watch?v=aZjYr87r1b8", type: "Video", difficulty: "Medium" },
-      { title: "B+ Tree — Branching Factor", url: "https://use-the-index-luke.com/sql/anatomy/the-tree", type: "Article", difficulty: "Medium" },
-      { title: "B+ Tree — Disk I/O Reduction Logic", url: "https://www.youtube.com/watch?v=UzHl2VzyZS4", type: "Video", difficulty: "Hard" },
-      // Clustered vs Non-Clustered Index
-      { title: "Clustered vs Non-Clustered Index — Storage Layout", url: "https://www.youtube.com/watch?v=ITcOiLSfVJQ", type: "Video", difficulty: "Medium" },
-      { title: "Clustered vs Non-Clustered — Performance Implications", url: "https://use-the-index-luke.com/sql/clustering/index-organized-clustered-index", type: "Article", difficulty: "Medium" },
-      // Covering Index
-      { title: "Covering Index — Index-Only Scan", url: "https://www.youtube.com/watch?v=HubezKbFL7E", type: "Video", difficulty: "Medium" },
-      { title: "Covering Index — When It Avoids Table Lookup", url: "https://use-the-index-luke.com/sql/clustering/index-only-scan", type: "Article", difficulty: "Medium" },
-      // Query Execution Plan
-      { title: "Query Execution Plan — Reading EXPLAIN Output", url: "https://www.youtube.com/watch?v=MYMFqwKqhyA", type: "Video", difficulty: "Medium" },
-      { title: "Identifying Full Table Scan vs Index Scan", url: "https://planetscale.com/learn/courses/mysql-for-developers/queries/explain", type: "Article", difficulty: "Medium" },
-      // WAL
-      { title: "Write-Ahead Logging (WAL) — Log-First Write Principle", url: "https://www.youtube.com/watch?v=wI4hKwl1Cn4", type: "Video", difficulty: "Hard" },
-      { title: "WAL — Crash Recovery Flow", url: "https://www.postgresql.org/docs/current/wal-intro.html", type: "Article", difficulty: "Hard" },
-      // Checkpointing
-      { title: "Checkpointing — Why Checkpoints Exist", url: "https://www.youtube.com/watch?v=LOv4av6e8xA", type: "Video", difficulty: "Hard" },
-      { title: "Checkpointing — Frequency vs Performance Trade-off", url: "https://www.postgresql.org/docs/current/wal-configuration.html", type: "Article", difficulty: "Hard" },
-      // ACID (Implementation Level)
-      { title: "ACID — Atomicity via WAL", url: "https://www.youtube.com/watch?v=pomxJOFVcQs", type: "Video", difficulty: "Medium" },
-      { title: "ACID — Consistency via Constraints", url: "https://www.youtube.com/watch?v=yaQ5YMWkxq4", type: "Video", difficulty: "Easy" },
-      { title: "ACID — Isolation via Locking/MVCC", url: "https://www.youtube.com/watch?v=4EajrPgJAk0", type: "Video", difficulty: "Hard" },
-      { title: "ACID — Durability via fsync", url: "https://www.youtube.com/watch?v=9nSaTv_wa6c", type: "Video", difficulty: "Hard" },
-      // Locking vs MVCC
-      { title: "Locking vs MVCC — Read/Write Blocking Behavior", url: "https://www.youtube.com/watch?v=AkpmAKoy_O4", type: "Video", difficulty: "Hard" },
-      { title: "Locking vs MVCC — Snapshot Visibility", url: "https://blog.bytebytego.com/p/mvcc-multi-version-concurrency-control", type: "Article", difficulty: "Hard" },
-      // Isolation Levels
-      { title: "Isolation Levels — Dirty Read", url: "https://www.youtube.com/watch?v=4EajrPgJAk0", type: "Video", difficulty: "Medium" },
-      { title: "Isolation Levels — Non-Repeatable Read", url: "https://blog.bytebytego.com/p/understanding-database-isolation-levels", type: "Article", difficulty: "Medium" },
-      { title: "Isolation Levels — Phantom Read", url: "https://www.youtube.com/watch?v=FDOPm3jCs28", type: "Video", difficulty: "Medium" },
-      // MVCC Mechanics
-      { title: "MVCC — Version Chains", url: "https://www.youtube.com/watch?v=Bz-6Y-_navo", type: "Video", difficulty: "Hard" },
-      { title: "MVCC — Snapshot Creation", url: "https://blog.bytebytego.com/p/mvcc-multi-version-concurrency-control", type: "Article", difficulty: "Hard" },
-      { title: "MVCC — Snapshot Isolation", url: "https://jepsen.io/consistency/models/snapshot-isolation", type: "Article", difficulty: "Hard" },
-      { title: "MVCC — Repeatable Read vs Serializable", url: "https://www.youtube.com/watch?v=de-fGi5EuNk", type: "Video", difficulty: "Hard" },
-      { title: "MVCC — Write Skew Problem", url: "https://www.youtube.com/watch?v=wybjsKtA9hI", type: "Video", difficulty: "Hard" },
-      // Replication
-      { title: "Replication — Leader-Follower Architecture", url: "https://www.youtube.com/watch?v=bI8Ry6GhMSE", type: "Video", difficulty: "Medium" },
-      { title: "Replication — Sync vs Async", url: "https://blog.bytebytego.com/p/database-replication-under-the-hood", type: "Article", difficulty: "Medium" },
-      { title: "Replication — Replication Lag", url: "https://www.youtube.com/watch?v=RIcNswROzCc", type: "Video", difficulty: "Medium" },
-      { title: "Replication — Read-After-Write Consistency", url: "https://blog.bytebytego.com/p/consistency-models-in-distributed", type: "Article", difficulty: "Hard" },
-      { title: "Replication — Failover Process", url: "https://www.youtube.com/watch?v=pSoKUfLTe8Y", type: "Video", difficulty: "Hard" },
-      // Scaling Databases
-      { title: "Scaling — Vertical vs Horizontal", url: "https://www.youtube.com/watch?v=xpDnVSmNFX0", type: "Video", difficulty: "Easy" },
-      { title: "Scaling — Read Replica Limits", url: "https://blog.bytebytego.com/p/how-to-scale-a-relational-database", type: "Article", difficulty: "Medium" },
-      { title: "Scaling — Write Bottleneck", url: "https://www.youtube.com/watch?v=ztHopE5Wnpc", type: "Video", difficulty: "Medium" },
-      { title: "Scaling — Cross-Region Replication Trade-offs", url: "https://blog.bytebytego.com/p/cross-region-replication-strategies", type: "Article", difficulty: "Hard" },
-      { title: "Scaling — Strong vs Eventual Consistency", url: "https://www.youtube.com/watch?v=RY_2gElt3SA", type: "Video", difficulty: "Hard" },
-      // Sharding / Partitioning
-      { title: "Sharding — Range-Based Sharding", url: "https://www.youtube.com/watch?v=5faMjKn0xoo", type: "Video", difficulty: "Medium" },
-      { title: "Sharding — Hash-Based Sharding", url: "https://www.youtube.com/watch?v=zaRkONvyGr8", type: "Video", difficulty: "Medium" },
-      { title: "Sharding — Directory-Based Sharding", url: "https://blog.bytebytego.com/p/database-sharding-explained", type: "Article", difficulty: "Medium" },
-      { title: "Sharding — Consistent Hashing", url: "https://www.youtube.com/watch?v=UF9Eri9Z1kc", type: "Video", difficulty: "Hard" },
-      { title: "Sharding — Rebalancing Strategy", url: "https://blog.bytebytego.com/p/consistent-hashing-explained", type: "Article", difficulty: "Hard" },
-      { title: "Sharding — Hot Partition Issue", url: "https://www.youtube.com/watch?v=P6SZY46Cj0w", type: "Video", difficulty: "Hard" },
-      { title: "Sharding — Cross-Shard Joins", url: "https://blog.bytebytego.com/p/challenges-in-database-sharding", type: "Article", difficulty: "Hard" },
-      { title: "Sharding — Global Secondary Indexes", url: "https://aws.amazon.com/blogs/database/tag/global-secondary-index/", type: "Article", difficulty: "Hard" },
-      // NoSQL
-      { title: "NoSQL — Key-Value Stores", url: "https://www.youtube.com/watch?v=W2Z7fbCLSTw", type: "Video", difficulty: "Easy" },
-      { title: "NoSQL — Document Databases", url: "https://www.youtube.com/watch?v=EE8ZTQxa0AM", type: "Video", difficulty: "Easy" },
-      { title: "NoSQL — Column Stores", url: "https://www.youtube.com/watch?v=Vw1fCeD06YI", type: "Video", difficulty: "Medium" },
-      { title: "NoSQL — Graph Databases", url: "https://www.youtube.com/watch?v=REVkXVxvMQE", type: "Video", difficulty: "Medium" },
-      { title: "NoSQL — When to Prefer Each", url: "https://blog.bytebytego.com/p/how-to-choose-the-right-database", type: "Article", difficulty: "Medium" },
-      { title: "NoSQL — Denormalization Trade-offs", url: "https://www.youtube.com/watch?v=Q_9cFgzZr8Q", type: "Video", difficulty: "Medium" },
-      { title: "NoSQL — Eventual Consistency Behavior", url: "https://blog.bytebytego.com/p/eventual-consistency-is-not-your-enemy", type: "Article", difficulty: "Hard" },
-      { title: "NoSQL — Secondary Index Limitations", url: "https://www.youtube.com/watch?v=DqaYWfFGzPA", type: "Video", difficulty: "Hard" },
-      // Multi-Leader & Split Brain
-      { title: "Multi-Leader Conflicts", url: "https://www.youtube.com/watch?v=iHNovZUZM3A", type: "Video", difficulty: "Hard" },
-      { title: "Split Brain Problem", url: "https://blog.bytebytego.com/p/what-is-split-brain", type: "Article", difficulty: "Hard" },
+      { title: "Relational Databases", checked: true },
+      { title: "B+ Tree Indexing - Understand node structure (internal vs leaf nodes)", checked: true },
+      { title: "B+ Tree Indexing - Understand branching factor", checked: true },
+      { title: "B+ Tree Indexing - Understand disk I/O reduction logic", checked: true },
+      { title: "Clustered vs Non-Clustered Index - Storage layout difference", checked: true },
+      { title: "Clustered vs Non-Clustered Index - Performance implications", checked: true },
+      { title: "Covering Index - Understand index-only scan", checked: true },
+      { title: "Covering Index - When it avoids table lookup", checked: true },
+      { title: "Query Execution Plan - Read EXPLAIN output", checked: true },
+      { title: "Query Execution Plan - Identify full table scan", checked: true },
+      { title: "Query Execution Plan - Identify index scan", checked: true },
+      { title: "Write-Ahead Logging (WAL) - Understand log-first write principle", checked: true },
+      { title: "Write-Ahead Logging (WAL) - Crash recovery flow", checked: true },
+      { title: "Checkpointing - Why checkpoints exist", checked: true },
+      { title: "Checkpointing - Trade-off between frequency & performance", checked: true },
+      { title: "ACID (Implementation Level) - Atomicity via WAL", checked: true },
+      { title: "ACID (Implementation Level) - Consistency via constraints", checked: true },
+      { title: "ACID (Implementation Level) - Isolation via locking/MVCC", checked: true },
+      { title: "ACID (Implementation Level) - Durability via fsync", checked: true },
+      { title: "Locking vs MVCC - Read/write blocking behavior", checked: true },
+      { title: "Locking vs MVCC - Snapshot visibility", checked: true },
+      { title: "Isolation Levels - Dirty Read", checked: true },
+      { title: "Isolation Levels - Non-Repeatable Read", checked: true },
+      { title: "Isolation Levels - Phantom Read", checked: true },
+      { title: "MVCC Mechanics - Version chains", checked: false },
+      { title: "MVCC Mechanics - Snapshot creation", checked: false },
+      { title: "MVCC Mechanics - Snapshot Isolation", checked: false },
+      { title: "MVCC Mechanics - Repeatable Read vs Serializable", checked: false },
+      { title: "MVCC Mechanics - Write Skew Problem", checked: false },
+      { title: "Replication - Leader-Follower Architecture", checked: false },
+      { title: "Replication - Sync vs Async Replication", checked: false },
+      { title: "Replication - Replication Lag", checked: false },
+      { title: "Replication - Read-After-Write Consistency", checked: false },
+      { title: "Replication - Failover Process", checked: false },
+      { title: "Scaling Databases - Vertical Scaling", checked: false },
+      { title: "Scaling Databases - Horizontal Scaling", checked: false },
+      { title: "Scaling Databases - Read Replica Limits", checked: false },
+      { title: "Scaling Databases - Write Bottleneck", checked: false },
+      { title: "Scaling Databases - Cross-Region Replication Trade-offs", checked: false },
+      { title: "Scaling Databases - Strong vs Eventual Consistency", checked: false },
+      { title: "Sharding / Partitioning - Range-Based Sharding", checked: false },
+      { title: "Sharding / Partitioning - Hash-Based Sharding", checked: false },
+      { title: "Sharding / Partitioning - Directory-Based Sharding", checked: false },
+      { title: "Sharding / Partitioning - Consistent Hashing", checked: false },
+      { title: "Sharding / Partitioning - Rebalancing Strategy", checked: false },
+      { title: "Sharding / Partitioning - Hot Partition Issue", checked: false },
+      { title: "Sharding / Partitioning - Cross-Shard Joins", checked: false },
+      { title: "Sharding / Partitioning - Global Secondary Indexes", checked: false },
+      { title: "NoSQL - Key-Value Stores", checked: false },
+      { title: "NoSQL - Document Databases", checked: false },
+      { title: "NoSQL - Column Stores", checked: false },
+      { title: "NoSQL - Graph Databases", checked: false },
+      { title: "NoSQL - When to Prefer Each", checked: false },
+      { title: "NoSQL - Denormalization Trade-offs", checked: false },
+      { title: "NoSQL - Eventual Consistency Behavior", checked: false },
+      { title: "NoSQL - Secondary Index Limitations", checked: false },
+      { title: "Multi-Leader Conflicts", checked: false },
+      { title: "Split Brain", checked: false },
     ],
   },
-
-  // ════════════════════════════════════════════
-  // 2️⃣ CACHING
-  // ════════════════════════════════════════════
   {
     name: "Caching",
     slug: "caching",
-    description: "Patterns, TTL, Eviction, Consistency, Redis Internals",
+    description: "Patterns, Eviction, Consistency, Redis",
     icon: "Zap",
     order: 2,
     items: [
-      // Core Patterns
-      { title: "Cache-Aside Pattern", url: "https://www.youtube.com/watch?v=TpRi95q3aHc", type: "Video", difficulty: "Easy" },
-      { title: "Write-Through Cache", url: "https://blog.bytebytego.com/p/caching-patterns", type: "Article", difficulty: "Medium" },
-      { title: "Write-Back Cache", url: "https://www.youtube.com/watch?v=DUbEgNw-F9c", type: "Video", difficulty: "Medium" },
-      { title: "Write-Around Cache", url: "https://blog.bytebytego.com/p/caching-patterns", type: "Article", difficulty: "Medium" },
-      { title: "Cache Warming", url: "https://www.youtube.com/watch?v=gGdMj_W30SA", type: "Video", difficulty: "Easy" },
-      // TTL & Eviction
-      { title: "TTL Strategy Design", url: "https://blog.bytebytego.com/p/a-crash-course-in-caching", type: "Article", difficulty: "Medium" },
-      { title: "Eviction — LRU", url: "https://www.youtube.com/watch?v=S6IfqDXWa10", type: "Video", difficulty: "Medium" },
-      { title: "Eviction — LFU", url: "https://www.youtube.com/watch?v=0OQB-CE6HcE", type: "Video", difficulty: "Medium" },
-      { title: "Eviction — FIFO and Random", url: "https://blog.bytebytego.com/p/cache-eviction-policies", type: "Article", difficulty: "Easy" },
-      { title: "Eviction — Memory Fragmentation", url: "https://redis.io/docs/management/optimization/memory-optimization/", type: "Article", difficulty: "Hard" },
-      // Consistency
-      { title: "Cache Invalidation Strategies", url: "https://www.youtube.com/watch?v=OqVlyZi2gIE", type: "Video", difficulty: "Medium" },
-      { title: "Double Delete Pattern", url: "https://blog.bytebytego.com/p/how-to-keep-cache-consistent-with", type: "Article", difficulty: "Hard" },
-      { title: "Stale Data Window", url: "https://www.youtube.com/watch?v=OqVlyZi2gIE", type: "Video", difficulty: "Medium" },
-      { title: "Read-After-Write Inconsistency", url: "https://blog.bytebytego.com/p/how-to-keep-cache-consistent-with", type: "Article", difficulty: "Hard" },
-      // Failure Scenarios
-      { title: "Cache Stampede / Thundering Herd", url: "https://www.youtube.com/watch?v=xoHrsCOS7Ug", type: "Video", difficulty: "Hard" },
-      { title: "Hot Key Problem", url: "https://blog.bytebytego.com/p/a-crash-course-in-caching", type: "Article", difficulty: "Hard" },
-      { title: "Cache Penetration", url: "https://www.youtube.com/watch?v=k9LI2L6WwJI", type: "Video", difficulty: "Medium" },
-      { title: "Cold Start Problem", url: "https://blog.bytebytego.com/p/a-crash-course-in-caching", type: "Article", difficulty: "Medium" },
-      // Redis Internals
-      { title: "Redis — Single-Threaded Event Loop", url: "https://www.youtube.com/watch?v=5TRFpFBccQM", type: "Video", difficulty: "Medium" },
-      { title: "Redis — Why Redis Is Fast", url: "https://blog.bytebytego.com/p/why-is-redis-so-fast", type: "Article", difficulty: "Easy" },
-      { title: "Redis — RDB Persistence", url: "https://www.youtube.com/watch?v=Hbt56gFj998", type: "Video", difficulty: "Medium" },
-      { title: "Redis — AOF Persistence", url: "https://redis.io/docs/management/persistence/", type: "Article", difficulty: "Medium" },
-      { title: "Redis — Replication Model", url: "https://www.youtube.com/watch?v=sEb_2W36jYg", type: "Video", difficulty: "Hard" },
-      { title: "Redis — Sentinel", url: "https://redis.io/docs/management/sentinel/", type: "Article", difficulty: "Hard" },
-      { title: "Redis — Cluster Mode & Slot-Based Sharding", url: "https://www.youtube.com/watch?v=N8BkmdZzxDg", type: "Video", difficulty: "Hard" },
+      { title: "Core Patterns - Cache-Aside", checked: false },
+      { title: "Core Patterns - Write-Through", checked: false },
+      { title: "Core Patterns - Write-Back", checked: false },
+      { title: "Core Patterns - Write-Around", checked: false },
+      { title: "Core Patterns - Cache Warming", checked: false },
+      { title: "TTL Strategy Design", checked: false },
+      { title: "Eviction Policies - LRU", checked: false },
+      { title: "Eviction Policies - LFU", checked: false },
+      { title: "Eviction Policies - FIFO", checked: false },
+      { title: "Eviction Policies - Random Eviction", checked: false },
+      { title: "Eviction Policies - Memory Fragmentation", checked: false },
+      { title: "Consistency - Cache Invalidation Strategies", checked: false },
+      { title: "Consistency - Double Delete Pattern", checked: false },
+      { title: "Consistency - Stale Data Window", checked: false },
+      { title: "Consistency - Read-After-Write Inconsistency", checked: false },
+      { title: "Failure Scenarios - Cache Stampede", checked: false },
+      { title: "Failure Scenarios - Thundering Herd", checked: false },
+      { title: "Failure Scenarios - Hot Key Problem", checked: false },
+      { title: "Failure Scenarios - Cache Penetration", checked: false },
+      { title: "Failure Scenarios - Cold Start Problem", checked: false },
+      { title: "Redis Internals - Single-Threaded Event Loop", checked: false },
+      { title: "Redis Internals - Why Redis Is Fast", checked: false },
+      { title: "Redis Internals - RDB Persistence", checked: false },
+      { title: "Redis Internals - AOF Persistence", checked: false },
+      { title: "Redis Internals - Replication Model", checked: false },
+      { title: "Redis Internals - Sentinel", checked: false },
+      { title: "Redis Internals - Cluster Mode", checked: false },
+      { title: "Redis Internals - Slot-Based Sharding", checked: false },
     ],
   },
-
-  // ════════════════════════════════════════════
-  // 3️⃣ ASYNC PROCESSING
-  // ════════════════════════════════════════════
   {
     name: "Async Processing",
     slug: "async-processing",
-    description: "Messaging, Kafka Internals, Failure Modes",
+    description: "Messaging Fundamentals, Kafka, Failure Modes",
     icon: "MessageSquare",
     order: 3,
     items: [
-      // Messaging Fundamentals
-      { title: "Messaging — At-Most-Once Delivery", url: "https://www.youtube.com/watch?v=WE9c9AZe-DY", type: "Video", difficulty: "Easy" },
-      { title: "Messaging — At-Least-Once Delivery", url: "https://blog.bytebytego.com/p/at-most-once-at-least-once-exactly", type: "Article", difficulty: "Medium" },
-      { title: "Messaging — Exactly-Once (Practical Meaning)", url: "https://www.youtube.com/watch?v=5_dFsogez2M", type: "Video", difficulty: "Hard" },
-      { title: "Idempotency Patterns", url: "https://blog.bytebytego.com/p/idempotency-keys-how-payment-systems", type: "Article", difficulty: "Medium" },
-      { title: "Dead Letter Queue", url: "https://www.youtube.com/watch?v=nFRgiSlwgX0", type: "Video", difficulty: "Medium" },
-      { title: "Retry Strategies (Exponential Backoff)", url: "https://blog.bytebytego.com/p/retry-patterns-and-strategies", type: "Article", difficulty: "Medium" },
-      { title: "Backpressure Handling", url: "https://www.youtube.com/watch?v=9-hZbP_6v4w", type: "Video", difficulty: "Hard" },
-      // Kafka Internals
-      { title: "Kafka — Topic Architecture", url: "https://www.youtube.com/watch?v=B5j3uNBH8X4", type: "Video", difficulty: "Medium" },
-      { title: "Kafka — Partition Strategy & Key Selection", url: "https://blog.bytebytego.com/p/apache-kafka-crash-course", type: "Article", difficulty: "Medium" },
-      { title: "Kafka — Ordering Guarantees", url: "https://www.youtube.com/watch?v=2pEpHPIe4Ec", type: "Video", difficulty: "Hard" },
-      { title: "Kafka — Offset Management", url: "https://blog.bytebytego.com/p/apache-kafka-crash-course", type: "Article", difficulty: "Medium" },
-      { title: "Kafka — Consumer Groups & Rebalancing", url: "https://www.youtube.com/watch?v=lAdG16KaHLs", type: "Video", difficulty: "Hard" },
-      { title: "Kafka — ISR (In-Sync Replicas)", url: "https://blog.bytebytego.com/p/apache-kafka-crash-course", type: "Article", difficulty: "Hard" },
-      { title: "Kafka — Leader Election", url: "https://www.youtube.com/watch?v=SRSfMOD-YYI", type: "Video", difficulty: "Hard" },
-      { title: "Kafka — Retention Policies & Log Compaction", url: "https://www.youtube.com/watch?v=daRxuCand_8", type: "Video", difficulty: "Medium" },
-      { title: "Kafka — Pull Model Rationale", url: "https://blog.bytebytego.com/p/why-does-kafka-use-a-pull-model", type: "Article", difficulty: "Medium" },
-      // Failure Modes
-      { title: "Producer Retry Duplication", url: "https://www.youtube.com/watch?v=5_dFsogez2M", type: "Video", difficulty: "Hard" },
-      { title: "Consumer Crash Mid-Processing", url: "https://blog.bytebytego.com/p/how-to-handle-failures-in-message", type: "Article", difficulty: "Hard" },
-      { title: "Broker Failure & Network Partition", url: "https://www.youtube.com/watch?v=udnX21__SeU", type: "Video", difficulty: "Hard" },
-      { title: "Data Loss Scenarios", url: "https://blog.bytebytego.com/p/how-to-prevent-data-loss-in-kafka", type: "Article", difficulty: "Hard" },
+      { title: "Messaging Fundamentals - At-Most-Once", checked: false },
+      { title: "Messaging Fundamentals - At-Least-Once", checked: false },
+      { title: "Messaging Fundamentals - Exactly-Once (Practical Meaning)", checked: false },
+      { title: "Messaging Fundamentals - Idempotency", checked: false },
+      { title: "Messaging Fundamentals - Dead Letter Queue", checked: false },
+      { title: "Messaging Fundamentals - Retry Strategies", checked: false },
+      { title: "Messaging Fundamentals - Backpressure Handling", checked: false },
+      { title: "Kafka Internals - Topic Architecture", checked: false },
+      { title: "Kafka Internals - Partition Strategy", checked: false },
+      { title: "Kafka Internals - Partition Key Selection", checked: false },
+      { title: "Kafka Internals - Ordering Guarantees", checked: false },
+      { title: "Kafka Internals - Offset Management", checked: false },
+      { title: "Kafka Internals - Consumer Groups", checked: false },
+      { title: "Kafka Internals - Rebalancing Process", checked: false },
+      { title: "Kafka Internals - ISR (In-Sync Replicas)", checked: false },
+      { title: "Kafka Internals - Leader Election", checked: false },
+      { title: "Kafka Internals - Retention Policies", checked: false },
+      { title: "Kafka Internals - Log Compaction", checked: false },
+      { title: "Kafka Internals - Pull Model Rationale", checked: false },
+      { title: "Failure Modes - Producer Retry Duplication", checked: false },
+      { title: "Failure Modes - Consumer Crash Mid-Processing", checked: false },
+      { title: "Failure Modes - Broker Failure", checked: false },
+      { title: "Failure Modes - Network Partition", checked: false },
+      { title: "Failure Modes - Data Loss Scenarios", checked: false },
     ],
   },
-
-  // ════════════════════════════════════════════
-  // 4️⃣ LOAD BALANCING & RESILIENCY
-  // ════════════════════════════════════════════
   {
     name: "Load Balancing & Resiliency",
     slug: "load-balancing-resiliency",
-    description: "Load Balancers, Circuit Breaker, Leader Election, Raft",
+    description: "Load Balancers, Circuit Breaker, Raft",
     icon: "Network",
     order: 4,
     items: [
-      // Load Balancers
-      { title: "Load Balancers — L4 vs L7", url: "https://www.youtube.com/watch?v=aKMLgFVxZYk", type: "Video", difficulty: "Medium" },
-      { title: "LB — Round Robin & Least Connections", url: "https://www.youtube.com/watch?v=K0Ta65OqQkY", type: "Video", difficulty: "Easy" },
-      { title: "LB — Consistent Hashing", url: "https://www.youtube.com/watch?v=UF9Eri9Z1kc", type: "Video", difficulty: "Hard" },
-      { title: "LB — Health Checks", url: "https://blog.bytebytego.com/p/load-balancing-algorithms", type: "Article", difficulty: "Easy" },
-      { title: "LB — Sticky Sessions", url: "https://www.youtube.com/watch?v=tvLDx3Sb1Ms", type: "Video", difficulty: "Medium" },
-      // Circuit Breaker
-      { title: "Circuit Breaker — Closed / Open / Half-Open States", url: "https://www.youtube.com/watch?v=ADHcBxEXvFA", type: "Video", difficulty: "Medium" },
-      { title: "Circuit Breaker — Deep Dive", url: "https://blog.bytebytego.com/p/circuit-breaker-pattern", type: "Article", difficulty: "Medium" },
-      // Resilience
-      { title: "Fail Fast Principle", url: "https://www.youtube.com/watch?v=IJojE0-18VU", type: "Video", difficulty: "Easy" },
-      { title: "Cascading Failure Prevention", url: "https://blog.bytebytego.com/p/how-to-prevent-cascading-failures", type: "Article", difficulty: "Hard" },
-      // Leader Election & Consensus
-      { title: "Leader Election", url: "https://www.youtube.com/watch?v=rN6ma561tak", type: "Video", difficulty: "Hard" },
-      { title: "Quorum Concept", url: "https://blog.bytebytego.com/p/consensus-algorithms-explained", type: "Article", difficulty: "Hard" },
-      { title: "Raft Basics — Heartbeats & Majority Consensus", url: "https://www.youtube.com/watch?v=IujMVjKvWP4", type: "Video", difficulty: "Hard" },
-      { title: "Raft — Visual Deep Dive", url: "https://thesecretlivesofdata.com/raft/", type: "Article", difficulty: "Hard" },
+      { title: "Load Balancers - L4 vs L7", checked: false },
+      { title: "Load Balancers - Round Robin", checked: false },
+      { title: "Load Balancers - Least Connections", checked: false },
+      { title: "Load Balancers - Consistent Hashing", checked: false },
+      { title: "Load Balancers - Health Checks", checked: false },
+      { title: "Load Balancers - Sticky Sessions", checked: false },
+      { title: "Circuit Breaker - Closed State", checked: false },
+      { title: "Circuit Breaker - Open State", checked: false },
+      { title: "Circuit Breaker - Half-Open State", checked: false },
+      { title: "Fail Fast Principle", checked: false },
+      { title: "Cascading Failure Prevention", checked: false },
+      { title: "Leader Election", checked: false },
+      { title: "Quorum Concept", checked: false },
+      { title: "Raft Basics - Heartbeats", checked: false },
+      { title: "Raft Basics - Majority Consensus Logic", checked: false },
     ],
   },
-
-  // ════════════════════════════════════════════
-  // 5️⃣ ESTIMATION PRACTICE
-  // ════════════════════════════════════════════
   {
     name: "Estimation Practice",
     slug: "estimation-practice",
-    description: "QPS, Storage, Bandwidth, Traffic Estimation Drills",
+    description: "QPS, Bandwidth, Storage",
     icon: "Calculator",
     order: 5,
     items: [
-      { title: "QPS Estimation", url: "https://www.youtube.com/watch?v=FU4WlwfS3G0", type: "Video", difficulty: "Medium" },
-      { title: "Storage Estimation", url: "https://blog.bytebytego.com/p/back-of-the-envelope-estimation", type: "Article", difficulty: "Medium" },
-      { title: "Bandwidth Estimation", url: "https://www.youtube.com/watch?v=UC5xf8FbdJc", type: "Video", difficulty: "Medium" },
-      { title: "Peak vs Average Traffic", url: "https://blog.bytebytego.com/p/back-of-the-envelope-estimation", type: "Article", difficulty: "Easy" },
-      { title: "Read/Write Ratio Impact", url: "https://www.youtube.com/watch?v=UC5xf8FbdJc", type: "Video", difficulty: "Medium" },
-      { title: "2-Minute Estimation Drill", url: "https://blog.bytebytego.com/p/back-of-the-envelope-estimation", type: "Article", difficulty: "Easy" },
+      { title: "QPS Estimation", checked: false },
+      { title: "Storage Estimation", checked: false },
+      { title: "Bandwidth Estimation", checked: false },
+      { title: "Peak vs Average Traffic", checked: false },
+      { title: "Read/Write Ratio Impact", checked: false },
+      { title: "2-Minute Estimation Drill", checked: false },
     ],
   },
 ];
 
 async function main() {
-  // Clear existing SD data
+  const userId = "NEERAJ04";
   console.log("🗑️  Clearing existing System Design data...");
   await prisma.userSDItem.deleteMany();
   await prisma.sDItem.deleteMany();
   await prisma.sDTopic.deleteMany();
 
-  console.log("📦 Seeding System Design Topics...");
+  console.log("📦 Seeding System Design Topics from new Notion sync...");
 
   let totalItems = 0;
 
@@ -256,26 +204,38 @@ async function main() {
     });
 
     if (t.items.length > 0) {
-      await Promise.all(
-        t.items.map((item) =>
-          prisma.sDItem.create({
+      let itemOrder = 0;
+      for (const itemData of t.items) {
+        const item = await prisma.sDItem.create({
+          data: {
+            title: itemData.title,
+            url: "#", 
+            type: "Article", 
+            difficulty: "Medium",
+            order: itemOrder++,
+            topicId: topic.id,
+          },
+        });
+
+        // Mark as done for NEERAJ04 if checked
+        if (itemData.checked) {
+          await prisma.userSDItem.create({
             data: {
-              title: item.title,
-              url: item.url,
-              type: item.type,
-              difficulty: item.difficulty,
-              topicId: topic.id,
+              userId,
+              sdItemId: item.id,
+              done: true,
+              completedOn: new Date(),
             },
-          })
-        )
-      );
+          });
+        }
+      }
       totalItems += t.items.length;
     }
 
     console.log(`  ✅ ${t.name} — ${t.items.length} items`);
   }
 
-  console.log(`\n🚀 System Design Seed completed: ${topics.length} topics, ${totalItems} items.`);
+  console.log(`\n🚀 System Design Seed completed: ${topics.length} topics, ${totalItems} items synced for ${userId}.`);
 }
 
 main()
