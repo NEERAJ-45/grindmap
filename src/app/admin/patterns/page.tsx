@@ -22,12 +22,16 @@ export default function AdminPatternsPage() {
   const handleCreate = () => {
     const slug = newPattern.slug || newPattern.name.toLowerCase().replace(/\s+/g, "-");
     startTransition(async () => {
-      await createPattern({ name: newPattern.name, slug, icon: newPattern.icon || "Layers" });
-      const updated = await getPatterns();
-      setPatterns(updated);
-      toast.success("Pattern created");
-      setShowModal(false);
-      setNewPattern({ name: "", icon: "", slug: "" });
+      try {
+        await createPattern({ name: newPattern.name, slug, icon: newPattern.icon || "Layers" });
+        const updated = await getPatterns();
+        setPatterns(updated);
+        toast.success("Pattern created");
+        setShowModal(false);
+        setNewPattern({ name: "", icon: "", slug: "" });
+      } catch (error: any) {
+        toast.error(error.message || "Failed to create pattern");
+      }
     });
   };
 

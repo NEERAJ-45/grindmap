@@ -12,6 +12,7 @@ import {
 } from "@/app/actions/sd-actions";
 import { Plus, Trash2, Edit2, ChevronDown, CheckCircle2, ChevronRight, Save, X, HelpCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import { IconPicker } from "@/components/ui/IconPicker";
 import * as LucideIcons from "lucide-react";
 
@@ -44,27 +45,39 @@ export function AdminSDClient({ initialTopics }: { initialTopics: TopicWithItems
   const handleCreateTopic = async () => {
     if (!newTopicName || !newTopicSlug) return;
     setLoading(true);
-    const created = await createSDTopic({
-      name: newTopicName,
-      slug: newTopicSlug,
-      description: newTopicDesc,
-      icon: newTopicIcon,
-      order: topics.length,
-    });
-    setTopics([...topics, { ...created, items: [] }]);
-    setIsAddingTopic(false);
-    setNewTopicName("");
-    setNewTopicSlug("");
-    setNewTopicDesc("");
-    setLoading(false);
+    try {
+      const created = await createSDTopic({
+        name: newTopicName,
+        slug: newTopicSlug,
+        description: newTopicDesc,
+        icon: newTopicIcon,
+        order: topics.length,
+      });
+      setTopics([...topics, { ...created, items: [] }]);
+      setIsAddingTopic(false);
+      setNewTopicName("");
+      setNewTopicSlug("");
+      setNewTopicDesc("");
+      toast.success("Topic created successfully");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to create topic");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleUpdateTopic = async (id: string) => {
     setLoading(true);
-    const updated = await updateSDTopic(id, editTopicForm);
-    setTopics(topics.map(t => t.id === id ? { ...t, ...updated } : t));
-    setEditingTopicId(null);
-    setLoading(false);
+    try {
+      const updated = await updateSDTopic(id, editTopicForm);
+      setTopics(topics.map(t => t.id === id ? { ...t, ...updated } : t));
+      setEditingTopicId(null);
+      toast.success("Topic updated successfully");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update topic");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDeleteTopic = async (id: string) => {

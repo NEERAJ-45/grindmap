@@ -94,10 +94,17 @@ export async function createSDTopic(data: {
   description?: string;
   order?: number;
 }) {
-  const topic = await prisma.sDTopic.create({ data });
-  revalidatePath("/system-design");
-  revalidatePath("/admin/system-design");
-  return topic;
+  try {
+    const topic = await prisma.sDTopic.create({ data });
+    revalidatePath("/system-design");
+    revalidatePath("/admin/system-design");
+    return topic;
+  } catch (error: any) {
+    if (error.code === "P2002") {
+      throw new Error("A topic with this name or slug already exists.");
+    }
+    throw error;
+  }
 }
 
 export async function updateSDTopic(

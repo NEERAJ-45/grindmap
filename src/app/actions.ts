@@ -47,10 +47,17 @@ export async function createPattern(data: {
   slug: string;
   icon: string;
 }) {
-  const pattern = await prisma.pattern.create({ data });
-  revalidatePath("/");
-  revalidatePath("/admin/patterns");
-  return pattern;
+  try {
+    const pattern = await prisma.pattern.create({ data });
+    revalidatePath("/");
+    revalidatePath("/admin/patterns");
+    return pattern;
+  } catch (error: any) {
+    if (error.code === "P2002") {
+      throw new Error("A pattern with this name or slug already exists.");
+    }
+    throw error;
+  }
 }
 
 export async function updatePattern(
